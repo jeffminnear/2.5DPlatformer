@@ -14,17 +14,24 @@ public class Player : MonoBehaviour
     private float yVelocity;
     private int maxJumps = 2;
     private int jumps = 0;
+    private UIManager ui;
 
 
     void Start()
     {
-        controller = GetComponent<CharacterController>();
+        Initialize();
     }
 
     void Update()
     {
-        
         Move();
+    }
+
+
+    private void Initialize()
+    {
+        controller = GetComponent<CharacterController>();
+        ui = GameObject.Find("UI").GetComponent<UIManager>();
     }
 
     private void Move()
