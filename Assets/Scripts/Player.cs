@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -14,17 +15,60 @@ public class Player : MonoBehaviour
     private float yVelocity;
     private int maxJumps = 2;
     private int jumps = 0;
+    private UIManager UI;
+    private Vector3 spawnPoint = new Vector3(3.96f, 5.28f, 0);
+    private MeshRenderer rend;
+    private bool useGravity = true;
+    private bool isDead = false;
+    private float spawnDelay = 0.25f;
 
 
     void Start()
     {
-        controller = GetComponent<CharacterController>();
+        Initialize();
     }
 
     void Update()
     {
-        
-        Move();
+        if (!isDead)
+        {
+            Move();
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "DeadZone" && !isDead)
+        {
+            Die();
+        }
+    }
+
+
+    public void Die()
+    {
+        isDead = true;
+        useGravity = false;
+        transform.position = spawnPoint;
+        UI.UpdateLives(-1);
+
+        rend.enabled = false;
+        if (UI.lives >= 0)
+        {
+            StartCoroutine("Respawn");
+        }
+        else
+        {
+            Destroy(this);
+        }
+    }
+
+
+    private void Initialize()
+    {
+        controller = GetComponent<CharacterController>();
+        rend = GetComponent<MeshRenderer>();
+        UI = GameObject.Find("UI").GetComponent<UIManager>();
     }
 
     private void Move()
@@ -48,7 +92,10 @@ public class Player : MonoBehaviour
             {
                 Jump();
             }
-            yVelocity -= gravity;
+            if (useGravity)
+            {
+                yVelocity -= gravity;
+            }
         }
 
         velocity.y = yVelocity;
@@ -65,5 +112,14 @@ public class Player : MonoBehaviour
     {
         jumps++;
         yVelocity = jumpHeight;
+    }
+
+    private IEnumerator Respawn()
+    {
+        yield return new WaitForSeconds(spawnDelay);
+
+        rend.enabled = true;
+        useGravity = true;
+        isDead = false;
     }
 }
